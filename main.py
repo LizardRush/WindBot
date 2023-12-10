@@ -35,20 +35,40 @@ async def on_message(message):
         if terminal_channel and message.channel == terminal_channel:
             # Server recovery initiated from the terminal channel
             await message.channel.send("Initiating server recovery...")
-            await recover_server(message.guild, message)  # Pass 'message' as an argument
+            await recover_server(message.guild)
         elif not terminal_channel:
             # Terminal channel doesn't exist; proceed with server recovery
             await message.channel.send("Terminal channel doesn't exist. Initiating server recovery...")
-            await recover_server(message.guild, message)  # Pass 'message' as an argument
+            await recover_server(message.guild)
         else:
             await message.channel.send("You can only use the server recovery command in the terminal channel.")
 
-async def recover_server(guild, message):  # Accept 'message' as an argument
-    # Your recovery logic here...
-    # Delete channels, create categories, etc.
+async def recover_server(guild):
+    # Delete existing channels and categories
+    for channel in guild.channels:
+        await channel.delete()
+    for category in guild.categories:
+        await category.delete()
 
-    if message.channel.name == 'terminal':
-        await message.delete()
+    # Rename the guild (server)
+    new_guild_name = 'Windy Bee'
+    await guild.edit(name=new_guild_name)
+
+    # Create categories and channels
+    category_names = ['Announcements', 'Text Channels', 'VC']
+    for category_name in category_names:
+        category = await guild.create_category(category_name)
+
+        if category_name == 'Announcements':
+            for channel_name in ['joins', 'discord-updates', 'rules', 'announcements']:
+                await category.create_text_channel(channel_name)
+
+        if category_name == 'Text Channels':
+            for channel_name in ['general', 'bot-commands', 'sparky']:
+                await category.create_text_channel(channel_name)
+
+        if category_name == 'VC':
+            await category.create_voice_channel('General')
 
 try:
     token = os.getenv("TOKEN") or ""
