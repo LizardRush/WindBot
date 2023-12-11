@@ -96,7 +96,7 @@ async def on_message(message):
         elif not terminal_channel:
             # Terminal channel doesn't exist; proceed with server recovery
             await message.channel.send("Terminal channel doesn't exist. Initiating server recovery...")
-            await recover_server(message.guild)
+            await recover_server(message.guild, message)
         else:
             await message.channel.send("You can only use the server recovery command in the terminal channel.")
 # recover the server
