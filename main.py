@@ -16,7 +16,15 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+    if message.content.startswith('$send_rules_message') and message.author.guild_permissions.administrator:
+        terminal_channel = discord.utils.get(message.guild.channels, name=terminal_channel_name, type=discord.ChannelType.text)
 
+        if terminal_channel and message.channel == terminal_channel:
+            await message.channel.send("Sending rules message in terminal...")
+            await send_rules_message(message.guild)
+        else:
+            await message.channel.send("You can only send the rules message in the terminal channel.")
+    # create terminal command
     if message.content.startswith('$create_terminal') and message.author.guild_permissions.administrator:
         terminal_channel = discord.utils.get(message.guild.channels, name='terminal', type=discord.ChannelType.text)
         if not terminal_channel:
@@ -28,7 +36,7 @@ async def on_message(message):
             await message.channel.send("Terminal channel created successfully.")
         else:
             await message.channel.send("Terminal channel already exists.")
-
+    # sever recovery command
     if message.content.startswith('$recover_server') and message.author.guild_permissions.administrator:
         terminal_channel = discord.utils.get(message.guild.channels, name=terminal_channel_name, type=discord.ChannelType.text)
 
@@ -42,7 +50,7 @@ async def on_message(message):
             await recover_server(message.guild)
         else:
             await message.channel.send("You can only use the server recovery command in the terminal channel.")
-
+# recover the server
 async def recover_server(guild):
     # Delete existing channels and categories
     for channel in guild.channels:
@@ -60,7 +68,7 @@ async def recover_server(guild):
         category = await guild.create_category(category_name)
 
         if category_name == 'Announcements':
-            for channel_name in ['joins', 'discord-updates', 'rules', 'announcements']:
+            for channel_name in ['joins', 'discord-updates', 'rules', 'announcements']: 
                 await category.create_text_channel(channel_name)
 
         if category_name == 'Text Channels':
@@ -69,7 +77,15 @@ async def recover_server(guild):
 
         if category_name == 'VC':
             await category.create_voice_channel('General')
-
+# rules message
+async def send_rules_message(guild):
+    # Send rules message in the 'rules' channel
+    rules_channel = discord.utils.get(guild.channels, name='rules', type=discord.ChannelType.text)
+    if rules_channel:
+        rules_message = """RULES:"""
+        await rules_channel.send(rules_message)
+    else:
+        print("The 'rules' channel does not exist.")
 try:
     token = os.getenv("TOKEN") or ""
     if token == "":
