@@ -1,6 +1,8 @@
 import os
 import discord
 
+print("Required Extensions Loaded, Starting Bot")
+
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -11,7 +13,7 @@ recovery_running = False
 
 @client.event
 async def on_ready():
-    print('Logged In With Token MTE3MDM5MDkzNjY0NDIzNTMxNQ...')
+    print('Bot Logged In!')
 
 async def recover_server(guild):
     global recovery_running
