@@ -13,7 +13,7 @@ async def on_ready():
     print('Logged In With Token MTE3MDM5MDkzNjY0NDIzNTMxNQ...')
 
 @client.event
-async def recover_server(guild, message):
+async def recover_server(guild):
     # Delete existing channels and categories
     for channel in guild.channels:
         await channel.delete()
@@ -39,7 +39,7 @@ async def recover_server(guild, message):
         if category_name == 'VC':
             await category.create_voice_channel('General')
     await send_rules_message(guild)
-    await create_terminal(message)
+    await create_terminal(guild)
 # rules message
 async def send_rules_message(guild):
     # Send rules message in the 'rules' channel
@@ -55,24 +55,24 @@ async def send_rules_message(guild):
         await rules_channel.send(rules_message)
     else:
         print("The 'rules' channel does not exist.")
-async def create_terminal(message):
+async def create_terminal(guild):
     terminal_channel = discord.utils.get(message.guild.channels, name='terminal', type=discord.ChannelType.text)
     if not terminal_channel:
         overwrites = {
-            message.guild.default_role: discord.PermissionOverwrite(read_messages=False),
-            message.guild.me: discord.PermissionOverwrite(read_messages=True)
+            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            guild.me: discord.PermissionOverwrite(read_messages=True)
         }
-        new_terminal_channel = await message.guild.create_text_channel('terminal', overwrites=overwrites)
-        await message.channel.send("Terminal channel created successfully.")
+        new_terminal_channel = await guild.create_text_channel('terminal', overwrites=overwrites)
+        await terminal_channel.send("Terminal channel created successfully.")
     else:
-        await message.channel.send("Terminal channel already exists.")
+        await terminal_channel.send("Terminal channel already exists.")
 async def on_message(message):
     if message.author == client.user:
         return
     if message.content.startswith('$send_rules_message') and message.author.guild_permissions.administrator:
         terminal_channel = discord.utils.get(message.guild.channels, name='terminal', type=discord.ChannelType.text)
         if not terminal_channel:
-            await create_terminal(message)
+            await create_terminal(message.guild)
             await message.channel.send("Terminal channel created successfully.")
         else:
             await message.channel.send("Terminal channel already exists.")
@@ -84,7 +84,7 @@ async def on_message(message):
             await message.channel.send("You can only send the rules message in the terminal channel.")
     # create terminal command
     if message.content.startswith('$create_terminal') and message.author.guild_permissions.administrator:
-        await create_terminal(message)
+        await create_terminal(message.guild)
     # sever recovery command
     if message.content.startswith('$recover_server') and message.author.guild_permissions.administrator:
         terminal_channel = discord.utils.get(message.guild.channels, name=terminal_channel_name, type=discord.ChannelType.text)
@@ -96,7 +96,7 @@ async def on_message(message):
         elif not terminal_channel:
             # Terminal channel doesn't exist; proceed with server recovery
             await message.channel.send("Terminal channel doesn't exist. Initiating server recovery...")
-            await recover_server(message.guild, message)
+            await recover_server(message.guild)
         else:
             await message.channel.send("You can only use the server recovery command in the terminal channel.")
 # recover the server
